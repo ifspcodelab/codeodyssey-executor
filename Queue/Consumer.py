@@ -40,10 +40,3 @@ class RabbitMQConsumer:
         print(f'Listen RabbitMQ on Port 5672')
         self.__channel.start_consuming()
 
-
-def my_callback(ch, method, properties, body):
-    print(body)
-
-
-rabbitmq_consumer = RabbitMQConsumer(my_callback)
-rabbitmq_consumer.start()

@@ -46,7 +46,3 @@ class RabbitMQPublisher:
                 delivery_mode=2
             )
         )
-
-
-rabbitmq_publisher = RabbitMQPublisher("new_exchange", "my_key", "my_queue")
-rabbitmq_publisher.send_message("ola, mundo")
