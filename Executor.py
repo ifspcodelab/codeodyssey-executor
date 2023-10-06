@@ -1,13 +1,17 @@
 from Queue.Consumer import RabbitMQConsumer
 from Queue.Publisher import RabbitMQPublisher
 import threading
+import time
 
 
-def my_callback(ch, method, properties, body):
-    print(body)
+def callback(ch, method, properties, body):
+    print(f"Iniciando processamento: {body}")
+    time.sleep(5)
+    print(f"Concluído processamento: {body}")
+    ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
-consumer = RabbitMQConsumer(my_callback)
+consumer = RabbitMQConsumer(callback)
 consumer_thread = threading.Thread(target=consumer.start)
 consumer_thread.start()
 

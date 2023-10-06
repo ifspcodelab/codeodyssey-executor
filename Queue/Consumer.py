@@ -28,6 +28,8 @@ class RabbitMQConsumer:
             durable=True
         )
 
+        channel.basic_qos(prefetch_count=1)
+
         channel.basic_consume(
             queue=self.queue,
             auto_ack=True,
