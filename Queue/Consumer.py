@@ -32,7 +32,6 @@ class RabbitMQConsumer:
 
         channel.basic_consume(
             queue=self.queue,
-            auto_ack=True,
             on_message_callback=self.__callback
         )
 
