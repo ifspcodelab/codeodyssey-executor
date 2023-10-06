@@ -23,7 +23,7 @@ with open('.Dockerfile', 'w') as file:
 
 # build an image from the Dockerfile
 temurin_gradlew_image, build_logs = docker_client.images.build(
-    path=r'.',
+    path=r'..',
     dockerfile='.Dockerfile',
     tag=image_tag_name,
     rm=True
