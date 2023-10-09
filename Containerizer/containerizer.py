@@ -55,5 +55,5 @@ def run_containerizer():
         log_line = log.decode().rstrip()
         print(log_line)
 
-    #temurin_gradlew_container.stop()
-    #temurin_gradlew_container.remove()
+    temurin_gradlew_container.stop()
+    temurin_gradlew_container.remove()
