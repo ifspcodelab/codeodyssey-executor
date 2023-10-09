@@ -1,6 +1,8 @@
 import docker
 import os
 
+BASE_PATH = ''
+
 
 def run_containerizer():
     project_name = "gradlew-project"
@@ -10,27 +12,27 @@ def run_containerizer():
     docker_client = docker.from_env()
 
     # Create Dockerfile, overwriting preexistent
-    with open('Dockerfile', 'w') as file:
+    with open(BASE_PATH + 'Dockerfile', 'w') as file:
         file.write(
             '''FROM eclipse-temurin:17
             RUN apt-get update && apt-get install -y dos2unix
             RUN mkdir /app
-            COPY {project_name} app/{project_name}
+            COPY {BASE_PATH}{project_name} app/{project_name}
             WORKDIR app/{project_name}
             RUN dos2unix gradlew && chmod +x gradlew
-            CMD ["./gradlew", "test"]'''.format(project_name=project_name))
+            CMD ["./gradlew", "test"]'''.format(project_name=project_name, BASE_PATH=BASE_PATH))
 
     # build an image from the Dockerfile
     temurin_gradlew_image, build_logs = docker_client.images.build(
         path=r'.',
-        dockerfile='Dockerfile',
+        dockerfile=BASE_PATH + 'Dockerfile',
         tag=image_tag_name,
         rm=True
     )
 
     # delete the Dockerfile
-    if os.path.exists('Dockerfile'):
-        os.remove('Dockerfile')
+    if os.path.exists(BASE_PATH + 'Dockerfile'):
+        os.remove(BASE_PATH + 'Dockerfile')
 
     # Create a container from the image
     temurin_gradlew_container = docker_client.containers.create(
