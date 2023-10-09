@@ -1,7 +1,6 @@
 from Queue.Consumer import RabbitMQConsumer
 from Queue.Publisher import RabbitMQPublisher
 import threading
-import time
 from Containerizer.containerizer import run_containerizer
 
 
