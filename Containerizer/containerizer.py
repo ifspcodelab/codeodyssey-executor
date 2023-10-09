@@ -12,27 +12,24 @@ def run_containerizer():
     # Create Dockerfile, overwriting preexistent
     with open('Dockerfile', 'w') as file:
         file.write(
-            '''
-            FROM eclipse-temurin:17\n
-            RUN apt-get update\n
-            RUN mkdir /app\n
-            COPY {project_name} /app/{project_name}\n
-            WORKDIR /app\n
-            CMD ["./gradlew", "test"]
-        '''.format(project_name=project_name)
-        )
+'''FROM eclipse-temurin:17
+RUN apt-get update
+RUN mkdir /app
+COPY {project_name} app/{project_name}
+WORKDIR app
+CMD ["./gradlew", "test"]'''.format(project_name=project_name))
 
     # build an image from the Dockerfile
     temurin_gradlew_image, build_logs = docker_client.images.build(
-        path=r'..',
+        path=r'.',
         dockerfile='Dockerfile',
         tag=image_tag_name,
         rm=True
     )
 
     # delete the Dockerfile
-    if os.path.exists('./Dockerfile'):
-        os.remove('./Dockerfile')
+    if os.path.exists('Dockerfile'):
+        os.remove('Dockerfile')
 
     # Create a container from the image
     temurin_gradlew_container = docker_client.containers.create(
