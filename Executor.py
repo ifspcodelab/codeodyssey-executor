@@ -1,8 +1,17 @@
+import base64
+
 from Queue.Consumer import RabbitMQConsumer
 from Queue.Publisher import RabbitMQPublisher
 import threading
 from Containerizer.containerizer import run_containerizer
+import psycopg2
 
+connection = psycopg2.connect(
+    host="localhost",
+    database="postgres",
+    user="postgres",
+    password="postgres"
+)
 
 def callback(ch, method, properties, body):
     print(f"Iniciando processamento: {body}")
