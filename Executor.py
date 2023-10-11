@@ -20,8 +20,7 @@ cursor = connection.cursor()
 def callback(ch, method, properties, body):
     print(f"Iniciando processamento: {body}")
 
-    id_resolution = body
-    id_resolution_str = id_resolution.decode('utf-8')
+    id_resolution_str = body.decode('utf-8')
 
     cursor.execute("""
         SELECT 
@@ -50,6 +49,9 @@ def callback(ch, method, properties, body):
 
     print(f"Concluído processamento: {body}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
+
+    cursor.close()
+    connection.close()
 
 
 consumer = RabbitMQConsumer(callback)
