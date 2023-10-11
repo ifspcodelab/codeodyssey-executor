@@ -21,6 +21,7 @@ def callback(ch, method, properties, body):
     print(f"Iniciando processamento: {body}")
 
     id_resolution = body
+    id_resolution_str = id_resolution.decode('utf-8')
 
     cursor.execute("""
         SELECT 
@@ -28,8 +29,8 @@ def callback(ch, method, properties, body):
         FROM
             RESOLUTION, ACTIVITY
         WHERE
-            RESOLUTION.idActivity = ACTIVITY.id AND RESOLUTION.id = %s 
-    """, (id_resolution,))
+            RESOLUTION.idActivity = ACTIVITY.id AND RESOLUTION.id = CAST(%s AS UUID) 
+    """, (id_resolution_str,))
 
     result = cursor.fetchone()
 
