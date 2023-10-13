@@ -42,10 +42,10 @@ def callback(ch, method, properties, body):
 
     os.makedirs('resolution', exist_ok=True)
 
-    with open(os.path.join('resolution', f'resolutionFile.{result[2]}'), 'w') as f:
+    with open(os.path.join('resolution', f'resolutionFile{result[2]}'), 'w') as f:
         f.write(decoded_resolution_file_str)
 
-    with open(os.path.join('resolution', f'testFile.{result[2]}'), 'w') as f:
+    with open(os.path.join('resolution', f'testFile{result[2]}'), 'w') as f:
         f.write(decoded_test_file_str)
 
     run_containerizer()
