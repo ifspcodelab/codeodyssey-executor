@@ -5,6 +5,7 @@ from Queue.Publisher import RabbitMQPublisher
 import threading
 from Containerizer.containerizer import run_containerizer
 import psycopg2
+import os
 
 connection = psycopg2.connect(
     host="localhost",
@@ -39,10 +40,12 @@ def callback(ch, method, properties, body):
     decoded_resolution_file_str = base64.b64decode(resolution_file_bytes.decode('utf-8')).decode('utf-8')
     decoded_test_file_str = base64.b64decode(test_file_bytes.decode('utf-8')).decode('utf-8')
 
-    with open(f'resolutionFile.{result[2]}', 'w') as f:
+    os.makedirs('resolution', exist_ok=True)
+
+    with open(os.path.join('resolution', f'resolutionFile.{result[2]}'), 'w') as f:
         f.write(decoded_resolution_file_str)
 
-    with open(f'testFile.{result[2]}', 'w') as f:
+    with open(os.path.join('resolution', f'testFile.{result[2]}'), 'w') as f:
         f.write(decoded_test_file_str)
 
     run_containerizer()
@@ -58,5 +61,5 @@ consumer = RabbitMQConsumer(callback)
 consumer_thread = threading.Thread(target=consumer.start)
 consumer_thread.start()
 
-publisher = RabbitMQPublisher("my_second_exchange", "my_second_key", "my_second_queue")
-publisher.send_message("Hello, world! How are you? I am fine, and you? I hope you are doing okay jabsijbdwe")
+# publisher = RabbitMQPublisher("my_second_exchange", "my_second_key", "my_second_queue")
+# publisher.send_message("Hello, world! How are you? I am fine, and you? I hope you are doing okay jabsijbdwe")
