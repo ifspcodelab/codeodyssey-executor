@@ -53,9 +53,6 @@ def callback(ch, method, properties, body):
     print(f"Concluído processamento: {body}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    cursor.close()
-    connection.close()
-
 
 consumer = RabbitMQConsumer(callback)
 consumer_thread = threading.Thread(target=consumer.start)

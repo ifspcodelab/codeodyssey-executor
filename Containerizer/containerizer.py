@@ -4,6 +4,7 @@ import os
 # Specify the absolute path to your resolution directory
 BASE_PATH = ''
 
+
 def run_containerizer():
     image_tag_name = "temurin-gradlew:17"
     container_name = "executor-container"
@@ -17,36 +18,33 @@ def run_containerizer():
             # Use Gradle to build the application
             FROM gradle:7.3.3-jdk17 as build
             WORKDIR /app
-            COPY resolution/ /app/
+            RUN gradle init --type java-library
+            COPY resolution/resolutionFile.java /app/src/main/java/com/resolution/resolutionFile
+            COPY resolution/testFile.java /app/src/test/java/com/testresolution/testFile
             RUN echo "plugins {" > build.gradle && \
-                echo "    id 'org.springframework.boot' version '2.6.1'" >> build.gradle && \
-                echo "    id 'io.spring.dependency-management' version '1.0.11.RELEASE'" >> build.gradle && \
                 echo "    id 'java'" >> build.gradle && \
                 echo "}" >> build.gradle && \
-                echo "group = 'com.example'" >> build.gradle && \
-                echo "version = '0.0.1-SNAPSHOT'" >> build.gradle && \
-                echo "sourceCompatibility = '17'" >> build.gradle && \
                 echo "repositories {" >> build.gradle && \
                 echo "    mavenCentral()" >> build.gradle && \
                 echo "}" >> build.gradle && \
                 echo "dependencies {" >> build.gradle && \
-                echo "    implementation 'org.springframework.boot:spring-boot-starter'" >> build.gradle && \
-                echo "    testImplementation 'org.springframework.boot:spring-boot-starter-test'" >> build.gradle && \
+                echo "    testImplementation 'junit:junit:4.13.2'" >> build.gradle && \
                 echo "}" >> build.gradle && \
                 echo "test {" >> build.gradle && \
                 echo "    useJUnitPlatform()" >> build.gradle && \
                 echo "}" >> build.gradle
-            RUN gradle clean build
+            RUN gradle build
             
             # Use Java to run the application
             FROM eclipse-temurin:17
-            RUN apt-get update && apt-get install -y dos2unix
             WORKDIR /app
-            COPY --from=build /app/build/libs/*.jar app.jar
-            CMD ["java", "-jar", "app.jar"]
-
-
-            ''')
+            COPY --from=build /app /app
+            RUN apt-get update && apt-get install -y dos2unix
+            RUN dos2unix gradlew && chmod +x gradlew
+            CMD ["./gradlew", "test"]
+   
+            '''
+        )
 
     # build an image from the Dockerfile
     temurin_gradlew_image, build_logs = docker_client.images.build(
@@ -79,6 +77,11 @@ def run_containerizer():
         tail='all'
     )
 
+    # Print logs
     for log in logs:
         log_line = log.decode().rstrip()
         print(log_line)
+
+    # Stop and remove the container
+    temurin_container.stop()
+    temurin_container.remove()
