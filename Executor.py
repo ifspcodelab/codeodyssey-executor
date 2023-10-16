@@ -5,6 +5,7 @@ from Containerizer.containerizer import run_containerizer
 import psycopg2
 import base64
 import setup
+import os
 
 
 connection = psycopg2.connect(
@@ -18,18 +19,31 @@ connection = psycopg2.connect(
 cursor = connection.cursor()
 
 
+def decode_base64(byte_string):
+    return base64.b64decode(byte_string).decode('utf8')
+
+
 def callback(ch, method, properties, body):
     print(f"Iniciando processamento: {body}")
     id_body = body.decode('utf8')
-    cursor.execute(f"SELECT * FROM RESOLUTIONS WHERE id='" + id_body + "'")
+    cursor.execute(
+        f"SELECT initial_file, solution_file, test_file, resolution_file, activity_id, extension"
+        f" FROM activities, resolutions"
+        f" WHERE resolutions.id='{id_body}' and activities.id=resolutions.activity_id"
+    )
     connection.commit()
     result = cursor.fetchone()
-    print("result: ", end='')
-    print(result)
-    print("result[4]: " + result[4])
-    print(base64.b64decode(result[4]).decode('utf8'))
+    initial_file, solution_file, test_file, resolution_file, activity_id, extension = result
 
-    # run_containerizer()
+    initial_file_dec, solution_file_dec, test_file_dec, resolution_file_dec = map(
+        decode_base64, (initial_file, solution_file, test_file, resolution_file)
+    )
+
+    with open('gradlew-project/src/main/java/com/example/helloworld/hello/world/HelloWorldApplication.' + extension, 'w') as fh:
+        fh.write(resolution_file_dec)
+
+    run_containerizer()
+
     print(f"Concluído processamento: {body}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
     cursor.close()
