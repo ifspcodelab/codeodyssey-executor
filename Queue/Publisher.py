@@ -1,10 +1,11 @@
 import pika
 import setup
+import json
 
 
 class RabbitMQPublisher:
     def __init__(self, exchange, routing_key, queue) -> None:
-        self.__host = "localhost"
+        self.__host = setup.RABBITMQ_HOST
         self.__port = 5672
         self.__username = setup.RABBITMQ_USERNAME
         self.__password = setup.RABBITMQ_PASSWORD
@@ -43,7 +44,7 @@ class RabbitMQPublisher:
         self.__channel.basic_publish(
             routing_key=self.__routing_key,
             exchange=self.__exchange,
-            body=body,
+            body=bytes(json.dumps(body), 'UTF-8'),
             properties=pika.BasicProperties(
                 delivery_mode=2
             )
