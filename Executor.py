@@ -7,6 +7,9 @@ import base64
 import setup
 
 
+result_message = ""
+result_message_resolution_id = ""
+
 connection = psycopg2.connect(
     host=setup.POSTGRES_HOST,
     database=setup.POSTGRES_DATABASE,
@@ -40,9 +43,14 @@ def callback(ch, method, properties, body):
         with open('gradlew-project/src/main/java/com/example/helloworld/hello/world/HelloWorldApplication.' + extension,
                   'w') as fh:
             fh.write(resolution_file_dec)
-        run_containerizer()
+        global result_message, result_message_resolution_id, publisher
+        result_message = run_containerizer()
+        result_message_resolution_id = str(id_body)
+        publisher.send_message({"id_resolution": result_message_resolution_id, "resolution_message": result_message})
     except TypeError:
         print(f"TypeError: query with id='{str(id_body)}' returned None")
+    except NameError:
+        print(f"NameError: error with message")
 
     print(f"Concluído processamento: {body}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
@@ -55,4 +63,3 @@ consumer_thread = threading.Thread(target=consumer.start)
 consumer_thread.start()
 
 publisher = RabbitMQPublisher("executor_exchange", setup.RABBITMQ_ROUTING_KEY, "result_queue")
-publisher.send_message("Message from the executor to result queue")
