@@ -5,7 +5,6 @@ from Containerizer.containerizer import run_containerizer
 import psycopg2
 import base64
 import setup
-import os
 
 
 connection = psycopg2.connect(
@@ -33,16 +32,17 @@ def callback(ch, method, properties, body):
     )
     connection.commit()
     result = cursor.fetchone()
-    initial_file, solution_file, test_file, resolution_file, activity_id, extension = result
-
-    initial_file_dec, solution_file_dec, test_file_dec, resolution_file_dec = map(
-        decode_base64, (initial_file, solution_file, test_file, resolution_file)
-    )
-
-    with open('gradlew-project/src/main/java/com/example/helloworld/hello/world/HelloWorldApplication.' + extension, 'w') as fh:
-        fh.write(resolution_file_dec)
-
-    run_containerizer()
+    try:
+        initial_file, solution_file, test_file, resolution_file, activity_id, extension = result
+        initial_file_dec, solution_file_dec, test_file_dec, resolution_file_dec = map(
+            decode_base64, (initial_file, solution_file, test_file, resolution_file)
+        )
+        with open('gradlew-project/src/main/java/com/example/helloworld/hello/world/HelloWorldApplication.' + extension,
+                  'w') as fh:
+            fh.write(resolution_file_dec)
+        run_containerizer()
+    except TypeError:
+        print(f"TypeError: query with id='{str(id_body)}' returned None")
 
     print(f"Concluído processamento: {body}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
@@ -54,5 +54,5 @@ consumer = RabbitMQConsumer(callback)
 consumer_thread = threading.Thread(target=consumer.start)
 consumer_thread.start()
 
-publisher = RabbitMQPublisher("my_second_exchange", setup.RABBITMQ_ROUTING_KEY, "my_second_queue")
-publisher.send_message("Hello, world! How are you? I am fine, and you? I hope you are doing okay jabsijbdwe")
+publisher = RabbitMQPublisher("executor_exchange", setup.RABBITMQ_ROUTING_KEY, "result_queue")
+publisher.send_message("Message from the executor to result queue")
