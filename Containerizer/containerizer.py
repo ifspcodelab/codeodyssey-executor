@@ -53,9 +53,14 @@ def run_containerizer():
         tail='all'
     )
 
+    # Print logs
+    log_lines = ''
     for log in logs:
-        log_line = log.decode().rstrip()
-        print(log_line)
+        log_line = log.decode()
+        log_lines += log_line
+        # print(log_line)
 
+    # Stop and remove the container
     temurin_gradlew_container.stop()
     temurin_gradlew_container.remove()
+    return log_lines
