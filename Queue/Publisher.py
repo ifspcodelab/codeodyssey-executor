@@ -1,11 +1,13 @@
 import pika
+import setup
+
 
 class RabbitMQPublisher:
     def __init__(self, exchange, routing_key, queue) -> None:
         self.__host = "localhost"
         self.__port = 5672
-        self.__username = "guest"
-        self.__password = "guest"
+        self.__username = setup.RABBITMQ_USERNAME
+        self.__password = setup.RABBITMQ_PASSWORD
         self.__exchange = exchange
         self.__routing_key = routing_key
         self.__queue = queue

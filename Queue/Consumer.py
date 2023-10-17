@@ -1,12 +1,13 @@
 import pika
+import setup
 
 
 class RabbitMQConsumer:
     def __init__(self, callback) -> None:
         self.__host = "localhost"
         self.__port = 5672
-        self.__userName = "guest"
-        self.__password = "guest"
+        self.__userName = setup.RABBITMQ_USERNAME
+        self.__password = setup.RABBITMQ_PASSWORD
         self.queue = "data_queue"
         self.__callback = callback
         self.__channel = self.__create_channel()
