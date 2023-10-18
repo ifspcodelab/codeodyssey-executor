@@ -26,7 +26,7 @@ def decode_base64(byte_string):
 
 
 def callback(ch, method, properties, body):
-    print(f"Iniciando processamento: {body}")
+    print(f"Start processing: {body}")
     id_body = body.decode('utf8')
     cursor.execute(
         f"SELECT initial_file, solution_file, test_file, resolution_file, activity_id, extension"
@@ -52,7 +52,7 @@ def callback(ch, method, properties, body):
     except NameError:
         print(f"NameError: error with message")
 
-    print(f"Concluído processamento: {body}")
+    print(f"Finish processing: {body}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
     cursor.close()
     connection.close()
