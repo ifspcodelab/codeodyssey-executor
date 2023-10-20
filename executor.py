@@ -1,24 +1,13 @@
-from messaging.Consumer import RabbitMQConsumer
-from messaging.Publisher import RabbitMQPublisher
+from external_services.messaging.Consumer import RabbitMQConsumer
+from external_services.messaging.Publisher import RabbitMQPublisher
 import threading
 from containerizer.containerizer import run_containerizer
-import psycopg2
 import base64
 import setup
-
+from external_services.database.database import get_connection_and_cursor
 
 result_message = ""
 result_message_resolution_id = ""
-
-connection = psycopg2.connect(
-    host=setup.POSTGRES_HOST,
-    database=setup.POSTGRES_DATABASE,
-    user=setup.POSTGRES_USER,
-    password=setup.POSTGRES_PASSWORD,
-    port=setup.POSTGRES_PORT
-)
-
-cursor = connection.cursor()
 
 
 def write_to_project(path, extension, file):
@@ -31,6 +20,7 @@ def decode_base64(byte_string):
 
 
 def callback(ch, method, properties, body):
+    connection, cursor = get_connection_and_cursor()
     print(f"Start processing: {body}")
     id_body = body.decode('utf8')
     cursor.execute(
