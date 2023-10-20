@@ -19,7 +19,8 @@ class RabbitMQConsumer:
             credentials=pika.PlainCredentials(
                 username=self.__userName,
                 password=self.__password
-            )
+            ),
+            heartbeat=30
         )
 
         channel = pika.BlockingConnection(connection_parameters).channel()
