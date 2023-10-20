@@ -1,5 +1,5 @@
-from Queue.Consumer import RabbitMQConsumer
-from Queue.Publisher import RabbitMQPublisher
+from messaging.Consumer import RabbitMQConsumer
+from messaging.Publisher import RabbitMQPublisher
 import threading
 from containerizer.containerizer import run_containerizer
 import psycopg2
