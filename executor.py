@@ -21,6 +21,11 @@ connection = psycopg2.connect(
 cursor = connection.cursor()
 
 
+def write_to_project(path, extension, file):
+    with open(path + extension, 'w') as fh:
+        fh.write(file)
+
+
 def decode_base64(byte_string):
     return base64.b64decode(byte_string).decode('utf8')
 
@@ -40,9 +45,10 @@ def callback(ch, method, properties, body):
         initial_file_dec, solution_file_dec, test_file_dec, resolution_file_dec = map(
             decode_base64, (initial_file, solution_file, test_file, resolution_file)
         )
-        with open('gradlew-project/src/main/java/com/example/helloworld/hello/world/HelloWorldApplication.' + extension,
-                  'w') as fh:
-            fh.write(resolution_file_dec)
+
+        write_to_project('gradlew-project/src/main/java/com/example/helloworld/hello/world/HelloWorldApplication.', extension, resolution_file_dec)
+        write_to_project('gradlew-project/src/test/java/com/example/helloworld/hello/world/HelloWorldApplicationTests.', extension, test_file_dec)
+
         global result_message, result_message_resolution_id, publisher
         result_message = run_containerizer()
         result_message_resolution_id = str(id_body)
