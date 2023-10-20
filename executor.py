@@ -1,10 +1,10 @@
-from external_services.messaging.Consumer import RabbitMQConsumer
-from external_services.messaging.Publisher import RabbitMQPublisher
+from services.messaging.Consumer import RabbitMQConsumer
+from services.messaging.Publisher import RabbitMQPublisher
 import threading
-from containerizer.containerizer import run_containerizer
+from services.containerizer.containerizer import run_containerizer
 import base64
 import setup
-from external_services.database.database import get_connection_and_cursor
+from services.database.database import get_connection_and_cursor
 
 result_message = ""
 result_message_resolution_id = ""
