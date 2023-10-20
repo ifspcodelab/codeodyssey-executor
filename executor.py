@@ -1,7 +1,7 @@
 from Queue.Consumer import RabbitMQConsumer
 from Queue.Publisher import RabbitMQPublisher
 import threading
-from containerizer.containerizer import run_containerizer
+from Containerizer.containerizer import run_containerizer
 import psycopg2
 import base64
 import setup
