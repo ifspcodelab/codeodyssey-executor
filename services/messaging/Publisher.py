@@ -25,7 +25,7 @@ class RabbitMQPublisher:
                 username=self.__username,
                 password=self.__password
             ),
-            heartbeat=30
+            heartbeat=60
         )
 
         channel = pika.BlockingConnection(connection_parameters).channel()
