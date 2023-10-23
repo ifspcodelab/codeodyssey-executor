@@ -19,10 +19,10 @@ def decode_base64(byte_string):
     return base64.b64decode(byte_string).decode('utf8')
 
 
-def callback(ch, method, properties, body):
+def callback(ch, method, properties, resolution_id):
     connection, cursor = get_connection_and_cursor()
-    print(f"Start processing: {body}")
-    id_body = body.decode('utf8')
+    print(f"Start processing: {resolution_id}")
+    id_body = resolution_id.decode('utf8')
     cursor.execute(
         f"SELECT initial_file, solution_file, test_file, resolution_file, activity_id, extension"
         f" FROM activities, resolutions"
@@ -48,7 +48,7 @@ def callback(ch, method, properties, body):
     except NameError:
         print(f"NameError: error with message")
 
-    print(f"Finish processing: {body}")
+    print(f"Finish processing: {resolution_id}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
     cursor.close()
     connection.close()
