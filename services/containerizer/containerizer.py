@@ -1,7 +1,7 @@
 import docker
 import os
 
-BASE_PATH = ''
+BASE_PATH = 'templates/java/'
 
 
 def run_containerizer():
@@ -17,22 +17,32 @@ def run_containerizer():
             '''FROM eclipse-temurin:17
             RUN apt-get update && apt-get install -y dos2unix
             RUN mkdir /app
-            COPY {BASE_PATH}{project_name} app/{project_name}
+            COPY {project_name} app/{project_name}
             WORKDIR app/{project_name}
             RUN dos2unix gradlew && chmod +x gradlew
             CMD ["./gradlew", "test"]'''.format(project_name=project_name, BASE_PATH=BASE_PATH))
 
+    # Clean unused images
+    docker_client.images.prune()
+
     # build an image from the Dockerfile
     temurin_gradlew_image, build_logs = docker_client.images.build(
-        path=r'.',
-        dockerfile=BASE_PATH + 'Dockerfile',
+        path=r'./' + BASE_PATH,
+        dockerfile='Dockerfile',
         tag=image_tag_name,
         rm=True
     )
 
-    # delete the Dockerfile
+    # delete the Dockerfile and container if exists
     if os.path.exists(BASE_PATH + 'Dockerfile'):
         os.remove(BASE_PATH + 'Dockerfile')
+
+    # Delete a container with the same name, if exists
+    # It should not work for more than one container instantiated at the same time, TODO: find a better solution
+    for container in docker_client.containers.list(all=True):
+        if container.attrs['Name'] == '/' + container_name:
+            docker_client.containers.get(container.id).stop()
+            docker_client.containers.get(container.id).remove()
 
     # Create a container from the image
     temurin_gradlew_container = docker_client.containers.create(
