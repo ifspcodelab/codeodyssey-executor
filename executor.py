@@ -8,10 +8,11 @@ from services.database.database import get_connection_and_cursor
 
 result_message = ""
 result_message_resolution_id = ""
+BASE_PATH = "templates/java/"
 
 
 def write_to_project(path, extension, file):
-    with open(path + extension, 'w') as fh:
+    with open(path + '.' + extension, 'w') as fh:
         fh.write(file)
 
 
@@ -36,8 +37,8 @@ def callback(ch, method, properties, resolution_id):
             decode_base64, (initial_file, solution_file, test_file, resolution_file)
         )
 
-        write_to_project('gradlew-project/src/main/java/com/example/helloworld/hello/world/HelloWorldApplication.', extension, resolution_file_dec)
-        write_to_project('gradlew-project/src/test/java/com/example/helloworld/hello/world/HelloWorldApplicationTests.', extension, test_file_dec)
+        write_to_project(BASE_PATH + 'gradlew-project/src/main/java/com/example/helloworld/hello/world/HelloWorldApplication', extension, resolution_file_dec)
+        write_to_project(BASE_PATH + 'gradlew-project/src/test/java/com/example/helloworld/hello/world/HelloWorldApplicationTests', extension, test_file_dec)
 
         global result_message, result_message_resolution_id, publisher
         result_message = run_containerizer()
