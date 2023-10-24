@@ -5,6 +5,8 @@ from services.containerizer.containerizer import run_containerizer
 import base64
 import setup
 from services.database.database import get_connection_and_cursor
+import pika
+import time
 
 result_message = ""
 result_message_resolution_id = ""
@@ -21,6 +23,7 @@ def decode_base64(byte_string):
 
 
 def callback(ch, method, properties, resolution_id):
+    t1_callback = time.time()
     connection, cursor = get_connection_and_cursor()
     print(f"Start processing: {resolution_id}")
     id_body = resolution_id.decode('utf8')
@@ -40,17 +43,22 @@ def callback(ch, method, properties, resolution_id):
         write_to_project(BASE_PATH + 'gradlew-project/src/main/java/com/example/helloworld/hello/world/HelloWorldApplication', extension, resolution_file_dec)
         write_to_project(BASE_PATH + 'gradlew-project/src/test/java/com/example/helloworld/hello/world/HelloWorldApplicationTests', extension, test_file_dec)
 
-        global result_message, result_message_resolution_id, publisher
+        global result_message, result_message_resolution_id
+        t1_container = time.time()
         result_message = run_containerizer()
+        duration_container = time.time() - t1_container
         result_message_resolution_id = str(id_body)
+        publisher = RabbitMQPublisher("executor_exchange", setup.RABBITMQ_ROUTING_KEY, "result_queue")
         publisher.send_message({"id_resolution": result_message_resolution_id, "resolution_message": result_message})
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        duration_callback = time.time() - t1_callback
+        print(f"Finish processing: {resolution_id} in {duration_callback:.0f}s (container time: {duration_container:.0f}s)")
     except TypeError:
         print(f"TypeError: query with id='{str(id_body)}' returned None")
-    except NameError:
-        print(f"NameError: error with message")
-
-    print(f"Finish processing: {resolution_id}")
-    ch.basic_ack(delivery_tag=method.delivery_tag)
+    except NameError as e:
+        print(f"NameError: {e}")
+    except pika.exceptions.StreamLostError:
+        print("StreamLostError: channel connection closed")
     cursor.close()
     connection.close()
 
@@ -58,5 +66,3 @@ def callback(ch, method, properties, resolution_id):
 consumer = RabbitMQConsumer(callback)
 consumer_thread = threading.Thread(target=consumer.start)
 consumer_thread.start()
-
-publisher = RabbitMQPublisher("executor_exchange", setup.RABBITMQ_ROUTING_KEY, "result_queue")
