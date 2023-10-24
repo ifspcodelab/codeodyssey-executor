@@ -20,7 +20,7 @@ class RabbitMQConsumer:
                 username=self.__userName,
                 password=self.__password
             ),
-            heartbeat=60
+            heartbeat=int(setup.RABBITMQ_HEARTBEAT)
         )
 
         channel = pika.BlockingConnection(connection_parameters).channel()
@@ -40,6 +40,10 @@ class RabbitMQConsumer:
         return channel
 
     def start(self):
-        print(f'Listen RabbitMQ on Port 5672')
-        self.__channel.start_consuming()
+        print(f'Listen RabbitMQ on Port {setup.RABBITMQ_PORT}')
+        try:
+            self.__channel.start_consuming()
+        except pika.exceptions.ConnectionWrongStateError:
+            print("ConnectionWrongStateError: channel connection closed")
+
 
