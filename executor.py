@@ -7,6 +7,7 @@ import setup
 from services.database.database import get_connection_and_cursor
 import pika
 import time
+import psycopg2
 
 result_message = ""
 result_message_resolution_id = ""
@@ -27,14 +28,14 @@ def callback(ch, method, properties, resolution_id):
     connection, cursor = get_connection_and_cursor()
     print(f"Start processing: {resolution_id}")
     id_body = resolution_id.decode('utf8')
-    cursor.execute(
-        f"SELECT initial_file, solution_file, test_file, resolution_file, activity_id, extension"
-        f" FROM activities, resolutions"
-        f" WHERE resolutions.id='{id_body}' and activities.id=resolutions.activity_id"
-    )
-    connection.commit()
-    result = cursor.fetchone()
     try:
+        cursor.execute(
+            f"SELECT initial_file, solution_file, test_file, resolution_file, activity_id, extension"
+            f" FROM activities, resolutions"
+            f" WHERE resolutions.id='{id_body}' and activities.id=resolutions.activity_id"
+        )
+        connection.commit()
+        result = cursor.fetchone()
         initial_file, solution_file, test_file, resolution_file, activity_id, extension = result
         initial_file_dec, solution_file_dec, test_file_dec, resolution_file_dec = map(
             decode_base64, (initial_file, solution_file, test_file, resolution_file)
@@ -59,6 +60,8 @@ def callback(ch, method, properties, resolution_id):
         print(f"NameError: {e}")
     except pika.exceptions.StreamLostError:
         print("StreamLostError: channel connection closed")
+    except psycopg2.errors.InvalidTextRepresentation:
+        print("InvalidTextRepresentation: not a uuid")
     cursor.close()
     connection.close()
 
