@@ -56,12 +56,16 @@ def callback(ch, method, properties, resolution_id):
         print(f"Finish processing: {resolution_id} in {duration_callback:.0f}s (container time: {duration_container:.0f}s)")
     except TypeError:
         print(f"TypeError: query with id='{str(id_body)}' returned None")
+        ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
     except NameError as e:
         print(f"NameError: {e}")
+        ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
     except pika.exceptions.StreamLostError:
         print("StreamLostError: channel connection closed")
+        ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
     except psycopg2.errors.InvalidTextRepresentation:
         print("InvalidTextRepresentation: not a uuid")
+        ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
     cursor.close()
     connection.close()
 
