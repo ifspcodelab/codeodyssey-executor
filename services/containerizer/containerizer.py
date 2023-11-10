@@ -1,5 +1,6 @@
 import docker
 import os
+from .xml_to_json import xml_to_json
 
 BASE_PATH = 'templates/java/'
 
@@ -64,13 +65,28 @@ def run_containerizer():
     )
 
     # Print logs
+    # Couldn't remove this code
     log_lines = ''
     for log in logs:
         log_line = log.decode()
         log_lines += log_line
         # print(log_line)
 
+    command = "cat ./build/test-results/test/TEST-com.example.helloworld.hello.world.HelloWorldApplicationTests.xml"
+
+    if not temurin_gradlew_container.status == 'running':
+        temurin_gradlew_container.restart()
+
+    exec_response = temurin_gradlew_container.exec_run(
+            cmd=["sh", "-c", command],
+            stdout=True,
+            stderr=True,
+            detach=False,
+            tty=True 
+        )
+
     # Stop and remove the container
     temurin_gradlew_container.stop()
     temurin_gradlew_container.remove()
-    return log_lines
+
+    return xml_to_json(exec_response.output.decode("utf-8"))
