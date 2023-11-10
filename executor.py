@@ -50,7 +50,7 @@ def callback(ch, method, properties, resolution_id):
         duration_container = time.time() - t1_container
         result_message_resolution_id = str(id_body)
         publisher = RabbitMQPublisher("executor_exchange", setup.RABBITMQ_ROUTING_KEY, "result_queue")
-        publisher.send_message({"id_resolution": result_message_resolution_id, "resolution_message": result_message})
+        publisher.send_message({"id_resolution": result_message_resolution_id, "resolution_test_result": result_message})
         ch.basic_ack(delivery_tag=method.delivery_tag)
         duration_callback = time.time() - t1_callback
         print(f"Finish processing: {resolution_id} in {duration_callback:.0f}s (container time: {duration_container:.0f}s)")
