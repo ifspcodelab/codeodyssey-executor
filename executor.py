@@ -22,6 +22,36 @@ def write_to_project(path, extension, file):
 def decode_base64(byte_string):
     return base64.b64decode(byte_string).decode('utf8')
 
+def count_tries(ch, method, properties, body):
+    print(f"Error processing {body}")
+
+    retries_count = int(properties.headers.get('x-retries-count', 0))
+    max_retries = 2
+
+    if retries_count < max_retries:
+        properties.headers['x-retries-count'] = retries_count + 1
+        ch.basic_publish(
+            exchange='',
+            routing_key='execution_queue',
+            body=body,
+            properties=pika.BasicProperties(
+                headers=properties.headers,
+                delivery_mode=2
+            )
+        )
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+    else:
+        print(f"{body} was sent to execution dead letter queue")
+        ch.basic_publish(
+            exchange='execution_dlx',
+            routing_key='execution_dlq_key',
+            body=body,
+            properties=pika.BasicProperties(
+                delivery_mode=2
+            )
+        )
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+
 
 def callback(ch, method, properties, resolution_id):
     t1_callback = time.time()
@@ -56,16 +86,16 @@ def callback(ch, method, properties, resolution_id):
         print(f"Finish processing: {resolution_id} in {duration_callback:.0f}s (container time: {duration_container:.0f}s)")
     except TypeError:
         print(f"TypeError: query with id='{str(id_body)}' returned None")
-        ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
+        count_tries(ch, method, properties, resolution_id)
     except NameError as e:
         print(f"NameError: {e}")
-        ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
+        count_tries(ch, method, properties, resolution_id)
     except pika.exceptions.StreamLostError:
         print("StreamLostError: channel connection closed")
-        ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
+        count_tries(ch, method, properties, resolution_id)
     except psycopg2.errors.InvalidTextRepresentation:
         print("InvalidTextRepresentation: not a uuid")
-        ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
+        count_tries(ch, method, properties, resolution_id)
     cursor.close()
     connection.close()
 

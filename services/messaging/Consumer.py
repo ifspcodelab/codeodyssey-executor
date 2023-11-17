@@ -24,11 +24,18 @@ class RabbitMQConsumer:
         )
 
         channel = pika.BlockingConnection(connection_parameters).channel()
+        
+        channel.exchange_declare(exchange='execution_dlx', exchange_type='direct')
 
-        channel.queue_declare(
-            queue=self.queue,
-            durable=True
-        )
+        channel.queue_declare(queue=self.queue, durable=True, arguments={
+            'x-message-ttl': 5000,
+            'x-dead-letter-exchange': 'execution_dlx',
+            'x-dead-letter-routing-key': "execution_dlq_key",
+        })
+        
+        channel.queue_declare(queue="execution_dlq", durable=True)
+
+        channel.queue_bind('execution_dlq', 'execution_dlx', 'execution_dlq_key')
 
         channel.basic_qos(prefetch_count=1)
 
