@@ -9,6 +9,7 @@ import pika
 import time
 import psycopg2
 
+
 result_message = ""
 result_message_resolution_id = ""
 BASE_PATH = "templates/java/"
@@ -54,11 +55,11 @@ def count_tries(ch, method, properties, body):
 
 
 def callback(ch, method, properties, resolution_id):
-    t1_callback = time.time()
-    connection, cursor = get_connection_and_cursor()
     print(f"Start processing: {resolution_id}")
-    id_body = resolution_id.decode('utf8')
+    t1_callback = time.time()
     try:
+        connection, cursor = get_connection_and_cursor()
+        id_body = resolution_id.decode('utf8')
         cursor.execute(
             f"SELECT initial_file, solution_file, test_file, resolution_file, activity_id, extension"
             f" FROM activities, resolutions"
@@ -70,13 +71,13 @@ def callback(ch, method, properties, resolution_id):
         initial_file_dec, solution_file_dec, test_file_dec, resolution_file_dec = map(
             decode_base64, (initial_file, solution_file, test_file, resolution_file)
         )
-
+        
         write_to_project(BASE_PATH + 'gradlew-project/src/main/java/com/example/helloworld/hello/world/HelloWorldApplication', extension, resolution_file_dec)
         write_to_project(BASE_PATH + 'gradlew-project/src/test/java/com/example/helloworld/hello/world/HelloWorldApplicationTests', extension, test_file_dec)
 
         global result_message, result_message_resolution_id
         t1_container = time.time()
-        result_message = run_containerizer()
+        result_message = run_containerizer(activity_id)
         duration_container = time.time() - t1_container
         result_message_resolution_id = str(id_body)
         publisher = RabbitMQPublisher("executor_exchange", setup.RABBITMQ_ROUTING_KEY, "result_queue")
@@ -84,6 +85,8 @@ def callback(ch, method, properties, resolution_id):
         ch.basic_ack(delivery_tag=method.delivery_tag)
         duration_callback = time.time() - t1_callback
         print(f"Finish processing: {resolution_id} in {duration_callback:.0f}s (container time: {duration_container:.0f}s)")
+        cursor.close()
+        connection.close()
     except TypeError:
         print(f"TypeError: query with id='{str(id_body)}' returned None")
         count_tries(ch, method, properties, resolution_id)
@@ -96,10 +99,13 @@ def callback(ch, method, properties, resolution_id):
     except psycopg2.errors.InvalidTextRepresentation:
         print("InvalidTextRepresentation: not a uuid")
         count_tries(ch, method, properties, resolution_id)
-    cursor.close()
-    connection.close()
-
-
+    except psycopg2.OperationalError:
+        print("OperationalError: error with connection")
+        count_tries(ch, method, properties, resolution_id)
+    except Exception as e:
+        print(f"Exception: {e}")
+        count_tries(ch, method, properties, resolution_id)
+    
 consumer = RabbitMQConsumer(callback)
 consumer_thread = threading.Thread(target=consumer.start)
 consumer_thread.start()
