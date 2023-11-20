@@ -1,10 +1,10 @@
 import uuid
 
 class ResultTestCase:
-    def __init__(self, test_name, sucess, info,  time, result_id):
+    def __init__(self, test_name, success, info,  time, result_id):
         self._id = uuid.uuid4()
         self._test_name = test_name
-        self._success = sucess
+        self._success = success
         self._info = info
         self._time = time
         self._result_id = result_id
@@ -54,4 +54,7 @@ class ResultTestCase:
         self._result_id= value
 
     def __str__(self):
-        return f"ResultTestCase(id={self._id}, test_name={self._test_name}, sucess={self._sucess}, info={self._info}, time={self._time}, time={self._result_id})"
+        return f"ResultTestCase(id={str(self._id)}, test_name={self._test_name}, success={self._success}, info={self._info}, time={self._time}, result_id={str(self._result_id)})"
+    
+    def asdict(self):
+        return {'id': str(self._id), 'test_name': self._test_name, 'success': self._success, 'info': self._info, 'time': self._time, 'result_id': str(self.result_id)}
