@@ -1,11 +1,11 @@
 import docker
 import os
-from .xml_to_json import xml_to_json
+from .containerizer_utils import xml_to_json, json_when_build_fail
 
 BASE_PATH = 'templates/java/'
 
 
-def run_containerizer():
+def run_containerizer(activity_id):
     try:
         project_name = "gradlew-project"
         image_tag_name = "temurin-gradlew:17"
@@ -74,28 +74,49 @@ def run_containerizer():
             log_lines += log_line
             # print(log_line)
 
-        command = "cat ./build/test-results/test/TEST-com.example.helloworld.hello.world.HelloWorldApplicationTests.xml"
 
         if not temurin_gradlew_container.status == 'running':
             temurin_gradlew_container.restart()
 
-        exec_response = temurin_gradlew_container.exec_run(
-                cmd=["sh", "-c", command],
+        exec_check_exist_test_file_response = temurin_gradlew_container.exec_run(
+                cmd=["sh", "-c", f'[ -d ./build/test-results ] && echo "Exists" || echo "Does not exist"'],
                 stdout=True,
                 stderr=True,
                 detach=False,
                 tty=True 
+        )
+        
+        test_file_exists = exec_check_exist_test_file_response.output.decode('utf-8')
+
+        if test_file_exists == "Exists" :
+            cat_command = f"./build/test-results/test/TEST-com.example.helloworld.hello.world.HelloWorldApplicationTests.xml"
+
+            if not temurin_gradlew_container.status == 'running':
+                temurin_gradlew_container.restart()
+
+            exec_response = temurin_gradlew_container.exec_run(
+                    cmd=["sh", "-c", cat_command],
+                    stdout=True,
+                    stderr=True,
+                    detach=False,
+                    tty=True 
             )
 
-        # Stop and remove the container
-        temurin_gradlew_container.stop()
-        temurin_gradlew_container.remove()
+            # Stop and remove the container
+            temurin_gradlew_container.stop()
+            temurin_gradlew_container.remove()
 
-        return xml_to_json(exec_response.output.decode("utf-8"))
+            return xml_to_json(activity_id, exec_response.output.decode("utf-8"))
+        else:
+            if not temurin_gradlew_container.status == 'running':
+                temurin_gradlew_container.restart()
+            return json_when_build_fail(activity_id, log_lines)
+    except docker.errors.ContainerError as e:
+        print(f"ContainerError: {e}")
     except docker.errors.BuildError:
         print("BuildError: Error building the image")
-    except TypeError:
-        print("TypeError: error with the path or file object")
+    except TypeError as e:
+        print(f"TypeError: error with the path or file object: {e}")
     except docker.errors.ImageNotFound:
         print("ImageError: image not found")
     except docker.errors.APIError as e:
