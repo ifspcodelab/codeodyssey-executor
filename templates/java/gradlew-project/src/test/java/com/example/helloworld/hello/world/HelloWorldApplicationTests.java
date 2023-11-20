@@ -17,4 +17,9 @@ class HelloWorldApplicationTests {
 		Assertions.assertEquals(0, 2%2);
 	}
 
+	@Test
+	void threeIsOdd() {
+		Assertions.assertEquals(0, 3%2);
+	}
+
 }
