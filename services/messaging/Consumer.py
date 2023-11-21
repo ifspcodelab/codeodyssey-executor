@@ -12,7 +12,7 @@ class RabbitMQConsumer:
         self.__port = setup.RABBITMQ_PORT
         self.__userName = setup.RABBITMQ_USERNAME
         self.__password = setup.RABBITMQ_PASSWORD
-        self.queue = "execution_queue"
+        self.__queue = "execution_queue"
         self.__callback = callback
         self.__channel = self.__create_channel()
 
@@ -29,9 +29,9 @@ class RabbitMQConsumer:
 
         channel = pika.BlockingConnection(connection_parameters).channel()
         
-        channel.exchange_declare(exchange='execution_dlx', exchange_type='direct')
+        channel.exchange_declare(exchange='execution_dlx', exchange_type='direct', durable=True)
 
-        channel.queue_declare(queue=self.queue, durable=True, arguments={
+        channel.queue_declare(queue=self.__queue, durable=True, arguments={
             'x-message-ttl': 5000,
             'x-dead-letter-exchange': 'execution_dlx',
             'x-dead-letter-routing-key': "execution_dlq_key",
@@ -44,7 +44,7 @@ class RabbitMQConsumer:
         channel.basic_qos(prefetch_count=1)
 
         channel.basic_consume(
-            queue=self.queue,
+            queue=self.__queue,
             on_message_callback=self.__callback
         )
 
