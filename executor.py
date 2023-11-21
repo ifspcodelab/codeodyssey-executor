@@ -34,27 +34,31 @@ def count_tries(ch, method, properties, body):
 
     if retries_count < max_retries:
         properties.headers['x-retries-count'] = retries_count + 1
-        ch.basic_publish(
-            exchange='',
-            routing_key='execution_queue',
-            body=body,
-            properties=pika.BasicProperties(
-                headers=properties.headers,
-                delivery_mode=2
+        try:
+            ch.basic_publish(
+                exchange='',
+                routing_key='execution_queue',
+                body=body,
+                properties=pika.BasicProperties(
+                    headers=properties.headers,
+                    delivery_mode=2
+                )
             )
-        )
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+        finally:
+            ch.basic_ack(delivery_tag=method.delivery_tag)
     else:
-        logger.info(f"{body} was sent to execution dead letter queue")
-        ch.basic_publish(
-            exchange='execution_dlx',
-            routing_key='execution_dlq_key',
-            body=body,
-            properties=pika.BasicProperties(
-                delivery_mode=2
+        try:
+            logger.info(f"{body} was sent to execution dead letter queue")
+            ch.basic_publish(
+                exchange='execution_dlx',
+                routing_key='execution_dlq_key',
+                body=body,
+                properties=pika.BasicProperties(
+                    delivery_mode=2
+                )
             )
-        )
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+        finally:
+            ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 def callback(ch, method, properties, resolution_id):
