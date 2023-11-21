@@ -36,7 +36,11 @@ class RabbitMQPublisher:
         self.__channel.exchange_declare(exchange=self.__exchange, exchange_type='direct')
 
     def __create_queue(self):
-        self.__channel.queue_declare(queue=self.__queue, durable=True)
+        self.__channel.queue_declare(queue=self.__queue, durable=True, arguments={
+            'x-message-ttl': 5000,
+            'x-dead-letter-exchange': 'result_dlx',
+            'x-dead-letter-routing-key': "result_dlq_key",
+        })
 
     def __bind_queue_to_exchange(self):
         self.__channel.queue_bind(exchange=self.__exchange, queue=self.__queue, routing_key=self.__routing_key)
