@@ -57,4 +57,4 @@ class ResultTestCase:
         return f"ResultTestCase(id={str(self._id)}, test_name={self._test_name}, success={self._success}, info={self._info}, time={self._time}, result_id={str(self._result_id)})"
     
     def asdict(self):
-        return {'id': str(self._id), 'test_name': self._test_name, 'success': self._success, 'info': self._info, 'time': self._time, 'result_id': str(self.result_id)}
+        return {'id': str(self._id), 'test_name': self._test_name, 'success': self._success, 'info': self._info, 'time': self._time}
