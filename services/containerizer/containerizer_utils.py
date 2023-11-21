@@ -63,7 +63,7 @@ def xml_to_json(activity_id,  xml_text_string):
     result = Result(
         test_result_dict['testsuite']['@name'],
         test_result_dict['testsuite']['@time'],
-        'error',
+        None,
         activity_id,
     )
 
