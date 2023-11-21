@@ -96,4 +96,7 @@ def json_when_build_fail(activity_id, logs):
 
     save_result(build_failed_result)
 
-    return json.dumps(build_failed_result.asdict(), indent=4)
+    build_failed_result_dict = build_failed_result.asdict()
+    build_failed_result_dict['testcases'] = []
+
+    return json.dumps(build_failed_result_dict, indent=4)
