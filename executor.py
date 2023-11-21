@@ -8,7 +8,10 @@ from services.database.database import get_connection_and_cursor
 import pika
 import time
 import psycopg2
+from services.logging.Logger import Logger
 
+
+logger = Logger.get_logger_without_handler()
 
 result_message = ""
 result_message_resolution_id = ""
@@ -24,7 +27,7 @@ def decode_base64(byte_string):
     return base64.b64decode(byte_string).decode('utf8')
 
 def count_tries(ch, method, properties, body):
-    print(f"Error processing {body}")
+    logger.warning(f"Error processing {body}")
 
     retries_count = int(properties.headers.get('x-retries-count', 0))
     max_retries = 2
@@ -42,7 +45,7 @@ def count_tries(ch, method, properties, body):
         )
         ch.basic_ack(delivery_tag=method.delivery_tag)
     else:
-        print(f"{body} was sent to execution dead letter queue")
+        logger.info(f"{body} was sent to execution dead letter queue")
         ch.basic_publish(
             exchange='execution_dlx',
             routing_key='execution_dlq_key',
@@ -55,7 +58,7 @@ def count_tries(ch, method, properties, body):
 
 
 def callback(ch, method, properties, resolution_id):
-    print(f"Start processing: {resolution_id}")
+    logger.info(f"Start processing: {resolution_id}")
     t1_callback = time.time()
     try:
         connection, cursor = get_connection_and_cursor()
@@ -84,26 +87,26 @@ def callback(ch, method, properties, resolution_id):
         publisher.send_message({"id_resolution": result_message_resolution_id, "resolution_test_result": result_message})
         ch.basic_ack(delivery_tag=method.delivery_tag)
         duration_callback = time.time() - t1_callback
-        print(f"Finish processing: {resolution_id} in {duration_callback:.0f}s (container time: {duration_container:.0f}s)")
+        logger.info(f"Finish processing: {resolution_id} in {duration_callback:.0f}s (container time: {duration_container:.0f}s)")
         cursor.close()
         connection.close()
     except TypeError:
-        print(f"TypeError: query with id='{str(id_body)}' returned None")
+        logger.warning(f"TypeError: query with id='{str(id_body)}' returned None")
         count_tries(ch, method, properties, resolution_id)
     except NameError as e:
-        print(f"NameError: {e}")
+        logger.warning(f"NameError: {e}")
         count_tries(ch, method, properties, resolution_id)
     except pika.exceptions.StreamLostError:
-        print("StreamLostError: channel connection closed")
+        logger.warning("StreamLostError: channel connection closed")
         count_tries(ch, method, properties, resolution_id)
     except psycopg2.errors.InvalidTextRepresentation:
-        print("InvalidTextRepresentation: not a uuid")
+        logger.warning("InvalidTextRepresentation: not a uuid")
         count_tries(ch, method, properties, resolution_id)
     except psycopg2.OperationalError:
-        print("OperationalError: error with connection")
+        logger.warning("OperationalError: error with connection")
         count_tries(ch, method, properties, resolution_id)
     except Exception as e:
-        print(f"Exception: {e}")
+        logger.warning(f"Exception: {e}")
         count_tries(ch, method, properties, resolution_id)
     
 consumer = RabbitMQConsumer(callback)

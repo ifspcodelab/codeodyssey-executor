@@ -7,6 +7,10 @@ from models.Result import Result
 from models.ResultTestCase import ResultTestCase
 from services.database.database import get_connection_and_cursor
 import re
+from services.logging.Logger import Logger
+
+
+logger = Logger.get_logger_without_handler()
 
 
 def save_testcase(testcase):
@@ -20,7 +24,7 @@ def save_testcase(testcase):
 
         connection.commit()
     except Exception as e:
-        print(f"Error: {e}")
+        logger.error(f"Error: {e}")
     finally:
         connection.close()
         cursor.close()
@@ -51,7 +55,7 @@ def save_result(result):
 
         connection.commit()
     except Exception as e:
-        print(f"Error: {e}")
+        logger.error(f"Error: {e}")
     finally:
         connection.close()
         cursor.close()

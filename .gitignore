@@ -54,3 +54,6 @@ wheels/
 
 # vscode
 .vscode
+
+# logging
+app.log

@@ -1,6 +1,10 @@
 import docker
 import os
 from .containerizer_utils import xml_to_json, json_when_build_fail
+from services.logging.Logger import Logger
+
+
+logger = Logger.get_logger_without_handler()
 
 BASE_PATH = 'templates/java/'
 
@@ -41,7 +45,6 @@ def run_containerizer(activity_id):
             os.remove(BASE_PATH + 'Dockerfile')
 
         # Delete a container with the same name, if exists
-        # It should not work for more than one container instantiated at the same time, TODO: find a better solution
         for container in docker_client.containers.list(all=True):
             if container.attrs['Name'] == '/' + container_name:
                 docker_client.containers.get(container.id).stop()
@@ -67,7 +70,6 @@ def run_containerizer(activity_id):
         )
 
         # Print logs
-        # Couldn't remove this code
         log_lines = ''
         for log in logs:
             log_line = log.decode()
@@ -108,14 +110,14 @@ def run_containerizer(activity_id):
             temurin_gradlew_container.remove()
             return json_when_build_fail(activity_id, log_lines)
     except docker.errors.ContainerError as e:
-        print(f"ContainerError: {e}")
+        logger.error(f"ContainerError: {e}")
     except docker.errors.BuildError as e:
-        print(f"BuildError: Error building the image: {e}")
+        logger.error(f"BuildError: Error building the image: {e}")
     except TypeError as e:
-        print(f"TypeError: error with the path or file object: {e}")
+        logger.error(f"TypeError: error with the path or file object: {e}")
     except docker.errors.ImageNotFound:
-        print("ImageError: image not found")
+        logger.error("ImageError: image not found")
     except docker.errors.APIError as e:
-        print(f"APIError: {e}")
+        logger.error(f"APIError: {e}")
     except Exception as e:
-        print(f"Exception: {e}")
+        logger.error(f"Error: {e}")

@@ -1,5 +1,9 @@
 import pika
 import setup
+from services.logging.Logger import Logger
+
+
+logger = Logger.get_logger()
 
 
 class RabbitMQConsumer:
@@ -47,10 +51,10 @@ class RabbitMQConsumer:
         return channel
 
     def start(self):
-        print(f'Listen RabbitMQ on Port {setup.RABBITMQ_PORT}')
+        logger.info(f'Listening RabbitMQ on Port {setup.RABBITMQ_PORT}')
         try:
             self.__channel.start_consuming()
         except pika.exceptions.ConnectionWrongStateError:
-            print("ConnectionWrongStateError: channel connection closed")
+            logger.error("ConnectionWrongStateError: channel connection closed")
 
 
