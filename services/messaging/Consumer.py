@@ -39,8 +39,8 @@ class RabbitMQConsumer:
         })
         channel.queue_declare(queue="execution_dlq", durable=True)
 
-        channel.queue_bind(self.__queue, 'api_exchange', 'my_first_key')
-        channel.queue_bind('execution_dlq', 'execution_dlx', 'execution_dlq_key')
+        channel.queue_bind(queue=self.__queue, exchange='api_exchange', routing_key='my_first_key')
+        channel.queue_bind(queue='execution_dlq', exchange='execution_dlx', routing_key='execution_dlq_key')
 
         channel.basic_qos(prefetch_count=1)
 
@@ -57,5 +57,9 @@ class RabbitMQConsumer:
             self.__channel.start_consuming()
         except pika.exceptions.ConnectionWrongStateError:
             logger.error("ConnectionWrongStateError: channel connection closed")
+        except Exception as e:
+            logger.error(f"Error: {e}")
+        finally:
+            self.start()
 
 
