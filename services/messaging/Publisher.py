@@ -42,6 +42,7 @@ class RabbitMQPublisher:
             'x-dead-letter-exchange': 'result_dlx',
             'x-dead-letter-routing-key': "result_dlq_key",
         })
+        self.__channel.queue_declare(queue='result_dlq', durable=True)
 
     def __bind_queue_to_exchange(self):
         self.__channel.queue_bind(exchange=self.__exchange, queue=self.__queue, routing_key=self.__routing_key)
