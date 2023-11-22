@@ -34,6 +34,7 @@ class RabbitMQPublisher:
 
     def __create_exchange(self):
         self.__channel.exchange_declare(exchange=self.__exchange, exchange_type='direct')
+        self.__channel.exchange_declare(exchange="result_dlx", exchange_type='direct')
 
     def __create_queue(self):
         self.__channel.queue_declare(queue=self.__queue, durable=True, arguments={
@@ -44,6 +45,7 @@ class RabbitMQPublisher:
 
     def __bind_queue_to_exchange(self):
         self.__channel.queue_bind(exchange=self.__exchange, queue=self.__queue, routing_key=self.__routing_key)
+        self.__channel.queue_bind(exchange='result_dlx', queue='result_dlq', routing_key='result_dlq_key')
 
     def send_message(self, body):
         self.__channel.basic_publish(
