@@ -29,7 +29,7 @@ class RabbitMQConsumer:
 
         channel = pika.BlockingConnection(connection_parameters).channel()
         
-        channel.exchange_declare(exchange='execution_dlx', exchange_type='direct', durable=True)
+        channel.exchange_declare(exchange='execution_dlx', exchange_type='direct')
 
         channel.queue_declare(queue=self.__queue, durable=True, arguments={
             'x-message-ttl': 5000,
