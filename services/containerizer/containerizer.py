@@ -9,7 +9,7 @@ logger = Logger.get_logger_without_handler()
 BASE_PATH = 'templates/java/'
 
 
-def run_containerizer(activity_id):
+def run_containerizer(resolution_id):
     try:
         project_name = "gradlew-project"
         image_tag_name = "temurin-gradlew:17"
@@ -101,14 +101,14 @@ def run_containerizer(activity_id):
             temurin_gradlew_container.stop()
             temurin_gradlew_container.remove()
 
-            return xml_to_json(activity_id, exec_response.output.decode("utf-8"))
+            return xml_to_json(resolution_id, exec_response.output.decode("utf-8"))
         else:
             if not temurin_gradlew_container.status == 'running':
                 temurin_gradlew_container.restart()
             
             temurin_gradlew_container.stop()
             temurin_gradlew_container.remove()
-            return json_when_build_fail(activity_id, log_lines)
+            return json_when_build_fail(resolution_id, log_lines)
     except docker.errors.ContainerError as e:
         logger.error(f"ContainerError: {e}")
     except docker.errors.BuildError as e:

@@ -1,12 +1,12 @@
 import uuid
 
 class Result:
-    def __init__(self, name, time, error, activity_id):
+    def __init__(self, name, time, error, resolution_id):
         self._id = uuid.uuid4()
         self._name = name
         self._time = time
         self._error = error
-        self._activity_id = activity_id
+        self._resolution_id = resolution_id
 
     @property
     def id(self):
@@ -25,8 +25,8 @@ class Result:
         return self._error
     
     @property
-    def activity_id(self):
-        return self._activity_id
+    def resolution_id(self):
+        return self._resolution_id
 
     @name.setter
     def name(self, value):
@@ -40,12 +40,12 @@ class Result:
     def error(self, value):
         self._error = value
 
-    @activity_id.setter
-    def activity_id(self, value):
-        self._activity_id = value
+    @resolution_id.setter
+    def resolution_id(self, value):
+        self._resolution_id = value
 
     def __str__(self):
-        return f"Result(id={str(self._id)}, name={self._name}, time={self._time}, error={self._error}, activity_id={self._activity_id})"
+        return f"Result(id={str(self._id)}, name={self._name}, time={self._time}, error={self._error}, resolution_id={self._resolution_id})"
     
     def asdict(self):
-        return {'id': str(self._id), 'name': self._name, 'time': self._time, 'error':self._error, 'activity_id': self._activity_id}
+        return {'id': str(self._id), 'name': self._name, 'time': self._time, 'error':self._error, 'resolution_id': self._resolution_id}

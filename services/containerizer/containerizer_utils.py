@@ -25,14 +25,14 @@ def test_result_to_dict(result_id, test_case_element):
     return result_test_case.asdict()
 
 
-def xml_to_json(activity_id,  xml_text_string):
+def xml_to_json(resolution_id,  xml_text_string):
     test_result_dict = xmltodict.parse(xml_text_string)
 
     result = Result(
         test_result_dict['testsuite']['@name'],
         test_result_dict['testsuite']['@time'],
         None,
-        activity_id,
+        resolution_id,
     )
 
     test_result_testcases_dict = test_result_dict['testsuite']['testcase']
@@ -44,7 +44,7 @@ def xml_to_json(activity_id,  xml_text_string):
     return json.dumps(result_dict, indent=4)
 
 
-def json_when_build_fail(activity_id, logs):
+def json_when_build_fail(resolution_id, logs):
     pattern = r"> Task :compileTestJava FAILED(.*?)FAILURE: Build failed with an exception."
     match = re.search(pattern, logs, re.DOTALL)
     error_text = match.group(1).strip()
@@ -53,7 +53,7 @@ def json_when_build_fail(activity_id, logs):
         'Build failed',
         0.0,
         error_text,
-        activity_id,
+        resolution_id,
     )
 
     build_failed_result_dict = build_failed_result.asdict()

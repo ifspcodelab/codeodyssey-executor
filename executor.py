@@ -84,7 +84,7 @@ def callback(ch, method, properties, resolution_id):
 
         global result_message, result_message_resolution_id
         t1_container = time.time()
-        result_message = run_containerizer(activity_id)
+        result_message = run_containerizer(resolution_id)
         duration_container = time.time() - t1_container
         result_message_resolution_id = str(id_body)
         publisher = RabbitMQPublisher("executor_exchange", setup.RABBITMQ_ROUTING_KEY, "result_queue")
