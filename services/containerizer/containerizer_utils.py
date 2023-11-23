@@ -35,7 +35,11 @@ def xml_to_json(resolution_id,  xml_text_string):
         resolution_id,
     )
 
-    test_result_testcases_dict = test_result_dict['testsuite']['testcase']
+    if int(test_result_dict['testsuite']['@tests']) == 1:
+        test_result_testcases_dict = [test_result_dict['testsuite']['testcase']]
+    else:
+        test_result_testcases_dict = test_result_dict['testsuite']['testcase']
+
     new_testcases_dict = [test_result_to_dict(result.id, testcase) for testcase in test_result_testcases_dict]
 
     result_dict = result.asdict()
