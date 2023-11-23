@@ -62,11 +62,11 @@ def count_tries(ch, method, properties, body):
 
 
 def callback(ch, method, properties, resolution_id):
-    logger.info(f"Start processing: {resolution_id}")
+    id_body = resolution_id.decode('utf8')
+    logger.info(f"Start processing: {id_body}")
     t1_callback = time.time()
     try:
         connection, cursor = get_connection_and_cursor()
-        id_body = resolution_id.decode('utf8')
         cursor.execute(
             f"SELECT initial_file, solution_file, test_file, resolution_file, activity_id, extension"
             f" FROM activities, resolutions"
@@ -84,14 +84,14 @@ def callback(ch, method, properties, resolution_id):
 
         global result_message, result_message_resolution_id
         t1_container = time.time()
-        result_message = run_containerizer(resolution_id)
+        result_message = run_containerizer(id_body)
         duration_container = time.time() - t1_container
         result_message_resolution_id = str(id_body)
         publisher = RabbitMQPublisher("executor_exchange", setup.RABBITMQ_ROUTING_KEY, "result_queue")
-        publisher.send_message({"id_resolution": result_message_resolution_id, "resolution_test_result": result_message})
+        publisher.send_message({"resolution_test_result": result_message})
         ch.basic_ack(delivery_tag=method.delivery_tag)
         duration_callback = time.time() - t1_callback
-        logger.info(f"Finish processing: {resolution_id} in {duration_callback:.0f}s (container time: {duration_container:.0f}s)")
+        logger.info(f"Finish processing: {id_body} in {duration_callback:.0f}s (container time: {duration_container:.0f}s)")
         cursor.close()
         connection.close()
     except TypeError:
