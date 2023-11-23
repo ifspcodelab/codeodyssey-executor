@@ -13,23 +13,6 @@ from services.logging.Logger import Logger
 logger = Logger.get_logger_without_handler()
 
 
-def save_testcase(testcase):
-    connection, cursor = get_connection_and_cursor()
-
-    try:
-        query = "INSERT INTO testcases (id, test_name, success, info, time, result_id) VALUES (%s, %s, %s, %s, %s, %s)"
-        data = (str(testcase.id), testcase.test_name, testcase.success, testcase.info, testcase.time, str(testcase.result_id))
-
-        cursor.execute(query, data)
-
-        connection.commit()
-    except Exception as e:
-        logger.error(f"Error: {e}")
-    finally:
-        connection.close()
-        cursor.close()
-
-
 def test_result_to_dict(result_id, test_case_element):
     result_test_case = ResultTestCase(
         test_case_element['@name'],
@@ -39,26 +22,7 @@ def test_result_to_dict(result_id, test_case_element):
         result_id,
     )
 
-    save_testcase(result_test_case)
-
     return result_test_case.asdict()
-
-
-def save_result(result):
-    connection, cursor = get_connection_and_cursor()
-
-    try:
-        query = "INSERT INTO results (id, name, time, error, activity_id) VALUES (%s, %s, %s, %s, %s)"
-        data = (str(result.id), result.name, result.time, result.error, result.activity_id)
-
-        cursor.execute(query, data)
-
-        connection.commit()
-    except Exception as e:
-        logger.error(f"Error: {e}")
-    finally:
-        connection.close()
-        cursor.close()
 
 
 def xml_to_json(activity_id,  xml_text_string):
@@ -70,8 +34,6 @@ def xml_to_json(activity_id,  xml_text_string):
         None,
         activity_id,
     )
-
-    save_result(result)
 
     test_result_testcases_dict = test_result_dict['testsuite']['testcase']
     new_testcases_dict = [test_result_to_dict(result.id, testcase) for testcase in test_result_testcases_dict]
@@ -93,8 +55,6 @@ def json_when_build_fail(activity_id, logs):
         error_text,
         activity_id,
     )
-
-    save_result(build_failed_result)
 
     build_failed_result_dict = build_failed_result.asdict()
     build_failed_result_dict['testcases'] = []
