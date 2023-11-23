@@ -33,7 +33,7 @@ class RabbitMQConsumer:
         channel.exchange_declare(exchange='execution_dlx', exchange_type='direct')
 
         channel.queue_declare(queue=self.__queue, durable=True, arguments={
-            'x-message-ttl': 5000,
+            'x-message-ttl': int(setup.RABBITMQ_TTL),
             'x-dead-letter-exchange': 'execution_dlx',
             'x-dead-letter-routing-key': "execution_dlq_key",
         })

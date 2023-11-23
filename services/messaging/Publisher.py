@@ -38,7 +38,7 @@ class RabbitMQPublisher:
 
     def __create_queue(self):
         self.__channel.queue_declare(queue=self.__queue, durable=True, arguments={
-            'x-message-ttl': 5000,
+            'x-message-ttl': int(setup.RABBITMQ_TTL),
             'x-dead-letter-exchange': 'result_dlx',
             'x-dead-letter-routing-key': "result_dlq_key",
         })
