@@ -59,7 +59,5 @@ class RabbitMQConsumer:
             logger.error("ConnectionWrongStateError: channel connection closed")
         except Exception as e:
             logger.error(f"Error: {e}")
-        finally:
-            self.start()
 
 
