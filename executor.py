@@ -88,7 +88,7 @@ def callback(ch, method, properties, resolution_id):
         duration_container = time.time() - t1_container
         result_message_resolution_id = str(id_body)
         publisher = RabbitMQPublisher("executor_exchange", setup.RABBITMQ_ROUTING_KEY, "result_queue")
-        publisher.send_message({"resolution_test_result": result_message})
+        publisher.send_message({"result": result_message})
         ch.basic_ack(delivery_tag=method.delivery_tag)
         duration_callback = time.time() - t1_callback
         logger.info(f"Finish processing: {id_body} in {duration_callback:.0f}s (container time: {duration_container:.0f}s)")
@@ -112,7 +112,7 @@ def callback(ch, method, properties, resolution_id):
     except Exception as e:
         logger.warning(f"Exception: {e}")
         count_tries(ch, method, properties, resolution_id)
-    
+
 consumer = RabbitMQConsumer(callback)
 consumer_thread = threading.Thread(target=consumer.start)
 consumer_thread.start()
