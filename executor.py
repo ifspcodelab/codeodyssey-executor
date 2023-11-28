@@ -19,7 +19,7 @@ BASE_PATH = "templates/java/"
 
 
 def write_to_project(path, extension, file):
-    with open(path + '.' + extension, 'w') as fh:
+    with open(path + extension, 'w') as fh:
         fh.write(file)
 
 
@@ -82,11 +82,10 @@ def callback(ch, method, properties, resolution_id):
         write_to_project(BASE_PATH + 'gradlew-project/src/main/java/com/example/helloworld/hello/world/HelloWorldApplication', extension, resolution_file_dec)
         write_to_project(BASE_PATH + 'gradlew-project/src/test/java/com/example/helloworld/hello/world/HelloWorldApplicationTests', extension, test_file_dec)
 
-        global result_message, result_message_resolution_id
+        global result_message
         t1_container = time.time()
         result_message = run_containerizer(id_body)
         duration_container = time.time() - t1_container
-        result_message_resolution_id = str(id_body)
         publisher = RabbitMQPublisher("executor_exchange", setup.RABBITMQ_ROUTING_KEY, "result_queue")
         publisher.send_message({"result": result_message})
         ch.basic_ack(delivery_tag=method.delivery_tag)
