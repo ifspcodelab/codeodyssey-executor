@@ -1,3 +1,5 @@
+import json
+
 from services.messaging.Consumer import RabbitMQConsumer
 from services.messaging.Publisher import RabbitMQPublisher
 import threading
@@ -87,7 +89,7 @@ def callback(ch, method, properties, resolution_id):
         result_message = run_containerizer(id_body)
         duration_container = time.time() - t1_container
         publisher = RabbitMQPublisher("executor_exchange", setup.RABBITMQ_ROUTING_KEY, "result_queue")
-        publisher.send_message({"result": result_message})
+        publisher.send_message({"result": json.loads(result_message)})
         ch.basic_ack(delivery_tag=method.delivery_tag)
         duration_callback = time.time() - t1_callback
         logger.info(f"Finish processing: {id_body} in {duration_callback:.0f}s (container time: {duration_container:.0f}s)")
