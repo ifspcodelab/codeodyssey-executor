@@ -1,0 +1,5 @@
+docker
+pika
+psycopg2
+python-dotenv
+xmltodict
