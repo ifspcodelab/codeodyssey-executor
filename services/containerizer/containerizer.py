@@ -11,7 +11,8 @@ BASE_PATH = 'templates/java/'
 
 def run_containerizer(resolution_id):
     try:
-        project_name = "gradlew-project"
+        # project_name = "gradlew-project"
+        project_name = "template-java-gradle"
         image_tag_name = "temurin-gradlew:17"
         container_name = "temurin_gradlew"
 
@@ -30,6 +31,7 @@ def run_containerizer(resolution_id):
 
         # Clean unused images
         docker_client.images.prune()
+        logger.info("images pruned")
 
         # build an image from the Dockerfile
 
@@ -39,6 +41,8 @@ def run_containerizer(resolution_id):
             tag=image_tag_name,
             rm=True
         )
+
+        logger.info("image built")
 
         # delete the Dockerfile and container if exists
         if os.path.exists(BASE_PATH + 'Dockerfile'):
@@ -57,8 +61,11 @@ def run_containerizer(resolution_id):
             working_dir=f'/app/{project_name}'.format(project_name=project_name)
         )
 
+        logger.info("container created")
+
         # Start the container
         temurin_gradlew_container.start()
+        logger.info("starting container")
 
         # Create logs
         logs = temurin_gradlew_container.logs(
@@ -74,40 +81,47 @@ def run_containerizer(resolution_id):
         for log in logs:
             log_line = log.decode()
             log_lines += log_line
-            # print(log_line)
+            print(log_line)
 
 
         if not temurin_gradlew_container.status == 'running':
             temurin_gradlew_container.restart()
 
         exec_check_exist_test_file_response = temurin_gradlew_container.exec_run(
-                cmd=["sh", "-c", f'[ -d ./build/test-results ] && echo "Exists" || echo "Does not exist"'],
+                # cmd=["sh", "-c", f'[ -d ./build/test-results ] && echo "Exists" || echo "Does not exist"'],
+                cmd=["sh", "-c", f'[ -d ./app/build/test-results ] && echo "Exists" || echo "Does not exist"'],
                 stdout=True,
                 stderr=True,
                 detach=False,
                 tty=True 
         )
+
+        logger.info("running container")
         
         test_file_exists = exec_check_exist_test_file_response.output.decode('utf-8')
 
-        if test_file_exists.strip() == "Exists" :
+        if test_file_exists.strip() == "Exists":
             if not temurin_gradlew_container.status == 'running':
                 temurin_gradlew_container.restart()
 
             exec_response = temurin_gradlew_container.exec_run(
-                cmd="cat ./build/test-results/test/TEST-com.example.helloworld.hello.world.HelloWorldApplicationTests.xml",
+                # cmd="cat ./build/test-results/test/TEST-com.example.helloworld.hello.world.HelloWorldApplicationTests.xml",
+                cmd="cat ./app/build/test-results/test/TEST-template.java.gradle.AppTest.xml",
             )
 
+            logger.info("end of execution")
             temurin_gradlew_container.stop()
             temurin_gradlew_container.remove()
-
+            logger.info("container removed")
             return xml_to_json(resolution_id, exec_response.output.decode("utf-8"))
         else:
             if not temurin_gradlew_container.status == 'running':
                 temurin_gradlew_container.restart()
             
+            logger.info("end of execution")
             temurin_gradlew_container.stop()
             temurin_gradlew_container.remove()
+            logger.info("container removed")
             return json_when_build_fail(resolution_id, log_lines)
     except docker.errors.ContainerError as e:
         logger.error(f"ContainerError: {e}")

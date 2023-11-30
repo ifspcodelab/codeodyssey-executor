@@ -80,9 +80,12 @@ def callback(ch, method, properties, resolution_id):
         initial_file_dec, solution_file_dec, test_file_dec, resolution_file_dec = map(
             decode_base64, (initial_file, solution_file, test_file, resolution_file)
         )
-        
-        write_to_project(BASE_PATH + 'gradlew-project/src/main/java/com/example/helloworld/hello/world/HelloWorldApplication', extension, resolution_file_dec)
-        write_to_project(BASE_PATH + 'gradlew-project/src/test/java/com/example/helloworld/hello/world/HelloWorldApplicationTests', extension, test_file_dec)
+
+        # write_to_project(BASE_PATH + 'gradlew-project/src/main/java/com/example/helloworld/hello/world/HelloWorldApplication', extension, resolution_file_dec)
+        # write_to_project(BASE_PATH + 'gradlew-project/src/test/java/com/example/helloworld/hello/world/HelloWorldApplicationTests', extension, test_file_dec)
+
+        write_to_project(BASE_PATH + 'template-java-gradle/app/src/main/java/template/java/gradle/App', extension, resolution_file_dec)
+        write_to_project(BASE_PATH + 'template-java-gradle/app/src/test/java/template/java/gradle/AppTest', extension, test_file_dec)
 
         global result_message
         t1_container = time.time()
